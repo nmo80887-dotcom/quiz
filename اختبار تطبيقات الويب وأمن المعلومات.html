@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اختبار تطبيقات الويب وأمن المعلومات</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--tx:#1d2330;--mut:#667085;--pri:#2f5bea;--ok:#12805c;--okbg:#e3f6ee;--bad:#c0332b;--badbg:#fdeceb;--bd:#dde1ea;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1c212c;--tx:#eef0f5;--mut:#9aa3b5;--pri:#6f8cff;--ok:#4ade9a;--okbg:#12362a;--bad:#ff8a80;--badbg:#3a1b1a;--bd:#2d3444;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1c212c;--tx:#eef0f5;--mut:#9aa3b5;--pri:#6f8cff;--ok:#4ade9a;--okbg:#12362a;--bad:#ff8a80;--badbg:#3a1b1a;--bd:#2d3444;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif;line-height:1.7}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 6px}
+p.sub{color:var(--mut);margin:0 0 16px}
+label{display:block;font-weight:600;margin:12px 0 6px}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px;font-family:inherit}
+input[type=tel]{direction:ltr;text-align:right}
+button{font-family:inherit;font-size:16px;cursor:pointer}
+.btn{width:100%;padding:13px;border:0;border-radius:12px;background:var(--pri);color:#fff;font-weight:700;margin-top:16px}
+.btn.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.err{color:var(--bad);margin-top:8px;min-height:1.4em;font-size:14px}
+.bar{height:8px;background:var(--bd);border-radius:8px;overflow:hidden;margin-bottom:6px}
+.bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mut);font-size:14px;margin-bottom:10px}
+.q{font-size:18px;font-weight:700;margin:6px 0 14px}
+.opt{display:block;width:100%;text-align:right;padding:12px 14px;margin-bottom:10px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx)}
+.opt.sel{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 12%,transparent)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.no{border-color:var(--bad);background:var(--badbg)}
+.opt bdi{unicode-bidi:isolate}
+.score{font-size:44px;font-weight:800;text-align:center;color:var(--pri);margin:6px 0}
+.info{color:var(--mut);text-align:center;margin:0}
+.rev{border-top:1px solid var(--bd);padding:10px 0;font-size:15px}
+.rev b.g{color:var(--ok)} .rev b.r{color:var(--bad)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="start" class="card">
+  <h1>اختبار: تطبيقات الويب وأمن المعلومات</h1>
+  <p class="sub">١٥ سؤالاً اختيار من متعدد. اكتب بياناتك ثم ابدأ.</p>
+  <label for="nm">الاسم بالكامل</label>
+  <input id="nm" type="text" autocomplete="name" placeholder="الاسم الثلاثي">
+  <label for="ph">رقم الهاتف</label>
+  <input id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx">
+  <div id="e0" class="err"></div>
+  <button class="btn" id="go">ابدأ الاختبار</button>
+</div>
+
+<div id="quiz" class="hide">
+  <div class="card">
+    <div class="bar"><i id="pb"></i></div>
+    <div class="meta"><span id="cnt"></span><span id="who"></span></div>
+    <div class="q" id="qt"></div>
+    <div id="opts"></div>
+    <button class="btn" id="nx" disabled>التالي</button>
+  </div>
+</div>
+
+<div id="res" class="hide">
+  <div class="card">
+    <h1 style="text-align:center">انتهى الاختبار</h1>
+    <div class="score" id="sc"></div>
+    <p class="info" id="who2"></p>
+    <button class="btn" id="wa">إرسال النتيجة عبر واتساب</button>
+    <button class="btn sec" id="cp">نسخ النتيجة</button>
+    <div class="err" id="e1" style="text-align:center"></div>
+  </div>
+  <div class="card"><b>مراجعة الإجابات</b><div id="rev"></div></div>
+</div>
+
+</div>
+<script>
+var TEACHER_PHONE = ""; // اكتب رقم المدرس بالصيغة الدولية بدون + مثل 201012345678
+var Q = [
+["ما الدور الأساسي للخادم في تطبيق الويب؟",["تخزين البيانات","إرسال الطلبات","إدارة الخادم","تشفير الخادم"],1],
+["ما الطريقة المستخدمة لطلب البيانات من الخادم؟",["GET","POST","TLS","JSON"],0],
+["أي عنصر يوضح نتيجة معالجة الطلب؟",["رموز حالة HTTP","GET","API","JSON"],0],
+["أي من رموز الحالة التالية يشير إلى نجاح الطلب؟",["500","404","302","200"],3],
+["ما الفكرة الأساسية من الاستجابة للحوادث وإدارة المخاطر؟",["منع استخدام الإنترنت","حذف جميع البيانات","تقليل الضرر ومنع التكرار","زيادة عدد الأجهزة"],2],
+["احتمال وقوع حدث بسبب ضعف ما مع مراعاة احتمال وقوعه وحجم أثره؟",["الخطر","الحادث الأمني","درجة الخطر","الاحتمال"],0],
+["ما الذي يُستخدم لحماية بيانات الجلسة بكفاءة بعد إنشاء المفاتيح؟",["التشفير المتماثل","الشهادة الرقمية","التوقيع الرقمي","اسم النطاق"],0],
+["أي مما يلي من التحديات الناتجة عن تصغير الترانزستور؟",["زيادة الشاشة","تيارات التسرب","بطء الكتابة","زيادة حجم الجهاز"],1],
+["أي مما يلي يعد إطار عمل JavaScript يتيح بناء تطبيقات تدريجيًا؟",["React","Vue","Next.js","HTML"],1],
+["أي من التقنيات التالية تُستخدم لإضافة السلوك التفاعلي للصفحة؟",["HTML","CSS","JavaScript","SQL"],2],
+["أي من عناصر HTML التالية تُستخدم لتحديد القسم الرئيسي للمحتوى؟",["<header>","<footer>","<main>","<nav>"],2],
+["أي من التالي يعتبر مكتبة JavaScript لبناء واجهات المستخدم؟",["React","HTML","CSS","SQL"],0],
+["المخاطر ذات التأثير المرتفع والاحتمالية المنخفضة في مصفوفة تقييم المخاطر تُصنف عادة على أنها ذات خطورة:",["مرتفعة جداً","متوسطة","منخفضة جداً","معدومة"],1],
+["درجة الخطر في النموذج المبسط تُحسب كالتالي:",["التأثير + الاحتمالية","التأثير × الاحتمالية","التأثير ÷ الاحتمالية","التأثير - الاحتمالية"],1],
+["المرحلة التي تُستخدم للحد من انتشار الضرر وعزل الجزء المتأثر تسمى:",["التحضير","الاحتواء","الاستعادة","الاستئصال"],1]
+];
+var L = ["أ","ب","ج","د"];
+var $ = function(i){return document.getElementById(i)};
+var name="", phone="", cur=0, sel=-1, ans=[];
+
+function show(id){["start","quiz","res"].forEach(function(x){$(x).classList.toggle("hide",x!==id)});window.scrollTo(0,0)}
+
+$("go").onclick=function(){
+  var n=$("nm").value.trim(), p=$("ph").value.trim();
+  var digits=p.replace(/[^\d]/g,"");
+  if(n.length<3){$("e0").textContent="من فضلك اكتب اسمك كاملاً.";return}
+  if(digits.length<8||digits.length>15){$("e0").textContent="رقم الهاتف غير صحيح.";return}
+  name=n;phone=p;$("e0").textContent="";
+  $("who").textContent=name;
+  show("quiz");render();
+};
+
+function render(){
+  sel=-1;var q=Q[cur];
+  $("cnt").textContent="سؤال "+(cur+1)+" من "+Q.length;
+  $("pb").style.width=(cur/Q.length*100)+"%";
+  $("qt").textContent=(cur+1)+"- "+q[0];
+  var box=$("opts");box.textContent="";
+  q[1].forEach(function(t,i){
+    var b=document.createElement("button");b.className="opt";
+    b.appendChild(document.createTextNode("("+L[i]+") "));
+    var s=document.createElement("bdi");s.textContent=t;b.appendChild(s);
+    b.onclick=function(){
+      sel=i;
+      Array.prototype.forEach.call(box.children,function(c,k){c.classList.toggle("sel",k===i)});
+      $("nx").disabled=false;
+    };
+    box.appendChild(b);
+  });
+  $("nx").disabled=true;
+  $("nx").textContent=cur===Q.length-1?"إنهاء وعرض النتيجة":"التالي";
+}
+
+$("nx").onclick=function(){
+  if(sel<0)return;
+  ans.push(sel);
+  if(cur<Q.length-1){cur++;render()}else finish();
+};
+
+function score(){var s=0;Q.forEach(function(q,i){if(ans[i]===q[2])s++});return s}
+function summary(){
+  return "نتيجة اختبار تطبيقات الويب وأمن المعلومات\nالاسم: "+name+"\nالهاتف: "+phone+"\nالدرجة: "+score()+" من "+Q.length;
+}
+
+function finish(){
+  $("pb").style.width="100%";
+  $("sc").textContent=score()+" / "+Q.length;
+  $("who2").textContent=name+" - "+phone;
+  var r=$("rev");r.textContent="";
+  Q.forEach(function(q,i){
+    var d=document.createElement("div");d.className="rev";
+    var ok=ans[i]===q[2];
+    var t=document.createElement("div");t.textContent=(i+1)+"- "+q[0];d.appendChild(t);
+    var a=document.createElement("div");
+    var m=document.createElement("b");m.className=ok?"g":"r";m.textContent=ok?"إجابتك صحيحة: ":"إجابتك: ";
+    a.appendChild(m);var s=document.createElement("bdi");s.textContent=q[1][ans[i]];a.appendChild(s);
+    d.appendChild(a);
+    if(!ok){
+      var c=document.createElement("div");var m2=document.createElement("b");m2.className="g";m2.textContent="الصحيحة: ";
+      c.appendChild(m2);var s2=document.createElement("bdi");s2.textContent=q[1][q[2]];c.appendChild(s2);d.appendChild(c);
+    }
+    r.appendChild(d);
+  });
+  show("res");
+}
+
+$("wa").onclick=function(){
+  var u="https://wa.me/"+(TEACHER_PHONE||"")+"?text="+encodeURIComponent(summary());
+  window.open(u,"_blank");
+};
+$("cp").onclick=function(){
+  var t=summary();
+  function done(){$("e1").style.color="var(--ok)";$("e1").textContent="تم النسخ."}
+  try{navigator.clipboard.writeText(t).then(done,function(){$("e1").textContent="تعذر النسخ، انسخ النتيجة يدوياً."})}
+  catch(e){$("e1").textContent="تعذر النسخ، انسخ النتيجة يدوياً."}
+};
+</script>
+</body>
+</html>
