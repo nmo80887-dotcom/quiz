@@ -71,13 +71,19 @@ button{font-family:inherit;font-size:16px;cursor:pointer}
     <p class="info" id="who2"></p>
     <button class="btn" id="wa">إرسال النتيجة عبر واتساب</button>
     <button class="btn sec" id="cp">نسخ النتيجة</button>
-    <div class="err" id="e1" style="text-align:center"></div>
+    <div class="err" id="e1" style="text-align:center" aria-live="polite"></div>
   </div>
   <div class="card"><b>مراجعة الإجابات</b><div id="rev"></div></div>
 </div>
 
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
+var EMAILJS_SERVICE_ID = "service_b884e6a";
+var EMAILJS_TEMPLATE_ID = "template_mn193s1";
+var EMAILJS_PUBLIC_KEY = "lM97o-e342QaFxctC";
+var TEACHER_EMAIL = "nmo80887@gmail.com";
+var startedAt = 0;
 var TEACHER_PHONE = ""; // اكتب رقم المدرس بالصيغة الدولية بدون + مثل 201012345678
 var Q = [
 ["ما الدور الأساسي للخادم في تطبيق الويب؟",["تخزين البيانات","إرسال الطلبات","إدارة الخادم","تشفير الخادم"],1],
@@ -100,6 +106,8 @@ var L = ["أ","ب","ج","د"];
 var $ = function(i){return document.getElementById(i)};
 var name="", phone="", cur=0, sel=-1, ans=[];
 
+if (window.emailjs) { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); }
+
 function show(id){["start","quiz","res"].forEach(function(x){$(x).classList.toggle("hide",x!==id)});window.scrollTo(0,0)}
 
 $("go").onclick=function(){
@@ -107,7 +115,7 @@ $("go").onclick=function(){
   var digits=p.replace(/[^\d]/g,"");
   if(n.length<3){$("e0").textContent="من فضلك اكتب اسمك كاملاً.";return}
   if(digits.length<8||digits.length>15){$("e0").textContent="رقم الهاتف غير صحيح.";return}
-  name=n;phone=p;$("e0").textContent="";
+  name=n;phone=p;startedAt=Date.now();$("e0").textContent="";
   $("who").textContent=name;
   show("quiz");render();
 };
@@ -164,6 +172,41 @@ function finish(){
     r.appendChild(d);
   });
   show("res");
+  sendResultEmail();
+}
+
+function sendResultEmail(){
+  var elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+  var mins = Math.floor(elapsed / 60);
+  var secs = elapsed % 60;
+  var percentage = Math.round((score() / Q.length) * 100);
+  var params = {
+    to_email: TEACHER_EMAIL,
+    student_name: name,
+    student_phone: phone,
+    score: score(),
+    total: Q.length,
+    percentage: percentage,
+    time_taken: mins + " دقيقة و " + secs + " ثانية"
+  };
+
+  $("e1").style.color = "var(--mut)";
+  $("e1").textContent = "جاري إرسال النتيجة إلى البريد الإلكتروني...";
+  if (!window.emailjs) {
+    $("e1").style.color = "var(--bad)";
+    $("e1").textContent = "تعذر تحميل خدمة البريد. تحقق من اتصال الإنترنت.";
+    return;
+  }
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+    .then(function(){
+      $("e1").style.color = "var(--ok)";
+      $("e1").textContent = "تم إرسال النتيجة إلى البريد الإلكتروني بنجاح.";
+    })
+    .catch(function(error){
+      console.error("EmailJS error:", error);
+      $("e1").style.color = "var(--bad)";
+      $("e1").textContent = "لم يتم إرسال البريد. راجع إعدادات EmailJS واتصال الإنترنت.";
+    });
 }
 
 $("wa").onclick=function(){
